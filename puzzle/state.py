@@ -1,3 +1,4 @@
+
 from __future__ import annotations
 from typing import List, Optional, Tuple
 
@@ -26,18 +27,58 @@ class State:
 
     def neighbors(self) -> List["State"]:
         """Retorna os estados filhos válidos a partir deste estado."""
-        # TODO: implemente a geração de estados filhos
-        raise NotImplementedError
+        neighbors = []
+        row, col = divmod(self.blank_index, 3)
+
+        moves = [
+            (-1, 0, "UP"),
+            (1, 0, "DOWN"),
+            (0, -1, "LEFT"),
+            (0, 1, "RIGHT")
+        ]
+
+        for dr, dc, action in moves:
+            new_row = row + dr
+            new_col = col + dc
+
+            if 0 <= new_row < 3 and 0 <= new_col < 3:
+                new_index = new_row * 3 + new_col
+                new_tiles = list(self.tiles)
+
+                blank = self.blank_index
+                new_tiles[blank], new_tiles[new_index] = (
+                    new_tiles[new_index],
+                    new_tiles[blank]
+                )
+
+                neighbors.append(
+                    State(
+                        tuple(new_tiles),
+                        parent=self,
+                        action=action,
+                        cost=self.cost + 1
+                    )
+                )
+
+        return neighbors
 
     def path(self) -> List["State"]:
         """Retorna a sequência de estados do estado inicial até este."""
-        # TODO: implemente a reconstrução do caminho usando self.parent
-        raise NotImplementedError
+        states = []
+        current = self
+
+        while current is not None:
+            states.append(current)
+            current = current.parent
+
+        return states[::-1]
 
     def actions(self) -> List[str]:
         """Retorna a sequência de ações do estado inicial até este."""
-        # TODO: implemente usando path()
-        raise NotImplementedError
+        return [
+            state.action
+            for state in self.path()[1:]
+        ]
 
     def __eq__(self, other: object) -> bool:
         return isinstance(other, State) and self.tiles == other.tiles
